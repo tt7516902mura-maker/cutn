@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="対戦カウンター">
 <link rel="apple-touch-icon" href="./apple-touch-icon.png">
-<link rel="icon" href="./icon-192.png">
+<link rel="icon" href="./favicon.png" type="image/png">
 <style>
   :root{
     --bg: #0F1B14;
@@ -24,6 +24,8 @@
     --hit-bg: #163625;
     --strike: #FF5A4E;
     --strike-bg: #3A1E1A;
+    --ball: #6FA8F5;
+    --foul: #E8C365;
     --text: #F3F1E7;
     --muted: #7C9081;
     --muted-2: #55684F;
@@ -133,6 +135,11 @@
   .game-top{ display:flex; align-items:center; justify-content:space-between; margin-bottom: 12px; }
   .game-num{ font-size: 13px; color: var(--gold); font-weight: 700; letter-spacing: 0.04em; }
   .game-num b{ font-size: 20px; margin-right:2px; font-variant-numeric: tabular-nums; }
+  .half-badge{
+    display:inline-block; margin-left:6px; font-size:11px; font-weight:800; letter-spacing:0.04em;
+    color:#1A1400; background: var(--gold); border-radius:6px; padding:2px 7px; vertical-align:2px;
+  }
+  .half-badge:empty{ display:none; }
   .roulette-btn{
     background: var(--gold); color:#1A1400; border:none; border-radius: 10px;
     padding: 9px 14px; font-size: 12.5px; font-weight:800; cursor:pointer; letter-spacing:0.02em;
@@ -176,39 +183,41 @@
   }
   .stats-title{ text-align:center; font-size:12px; color: var(--muted); letter-spacing:0.1em; margin-bottom: 12px; }
   .stat-cols{ display:grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .player-total-row{ display:flex; align-items:center; justify-content:space-between; padding: 8px 2px; }
+  .player-total-row{ padding: 10px 2px; }
   .player-total-row + .player-total-row{ border-top: 1px solid var(--panel-line); }
-  .player-total-name{ font-size: 14px; font-weight: 700; color: var(--text); }
-  .player-total-nums{ display:flex; gap: 16px; }
-  .mini-stat{ display:flex; align-items:center; gap:6px; font-size: 16px; font-weight:800; font-variant-numeric: tabular-nums; }
+  .player-total-name{ font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+  .player-total-nums{ display:grid; grid-template-columns: repeat(2, auto); gap: 6px 20px; justify-content:start; }
+  .mini-stat{ display:flex; align-items:center; gap:6px; font-size: 15px; font-weight:800; font-variant-numeric: tabular-nums; }
   .mini-stat.hit{ color: var(--hit); }
   .mini-stat.strike{ color: var(--strike); }
+  .mini-stat.ball{ color: var(--ball); }
+  .mini-stat.foul{ color: var(--foul); }
   .stat-label{ display:flex; align-items:center; justify-content:center; gap:5px; font-size:12px; color:var(--muted); margin-bottom:6px; }
   .dot{ width:7px; height:7px; border-radius:50%; }
   .dot.hit{ background: var(--hit); }
   .dot.strike{ background: var(--strike); }
+  .dot.ball{ background: var(--ball); }
+  .dot.foul{ background: var(--foul); }
   .stat-row{ display:flex; align-items:center; justify-content:center; gap:8px; }
   .stat-num{ min-width:44px; text-align:center; font-size: 32px; font-weight:800; font-variant-numeric: tabular-nums;
     font-family: 'Arial Black', 'Hiragino Sans', sans-serif; }
   .stat-num.hit{ color: var(--hit); }
   .stat-num.strike{ color: var(--strike); }
+  .stat-num.ball{ color: var(--ball); }
+  .stat-num.foul{ color: var(--foul); }
   .cbtn{ width: 34px; height: 34px; border-radius: 10px; border:none; font-size: 17px; font-weight:800;
     cursor:pointer; color:#0C1408; display:flex; align-items:center; justify-content:center; user-select:none; flex-shrink:0; }
   .cbtn:active{ transform: scale(0.92); }
   .cbtn.minus{ background: #2A3B28; color: var(--muted); }
   .cbtn.plus.hit{ background: var(--hit); }
   .cbtn.plus.strike{ background: var(--strike); }
+  .cbtn.plus.ball{ background: var(--ball); }
+  .cbtn.plus.foul{ background: var(--foul); color:#241C05; }
 
   /* Action row */
-  .actions-row{ display:grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
   .action-btn{ border:none; border-radius: 14px; padding: 14px 10px; font-size: 13.5px; font-weight:700; cursor:pointer; }
-  .btn-pass{ background: #223047; color: #A9C4F0; border: 1px solid #33456A; }
-  .btn-pass small{ display:block; font-weight:400; color:#7C93B8; font-size:10.5px; margin-top:2px; }
-  .btn-foul{ background: #3A2F1A; color: #E8C88A; border: 1px solid #5E4A24; }
-  .btn-foul small{ display:block; font-weight:400; color:#B89A63; font-size:10.5px; margin-top:2px; }
   .btn-reset{ width:100%; background: var(--panel); color: #C97B74; border: 1px solid #4A2A26; }
   .btn-reset.armed{ background: var(--strike); color: #2A0C09; border-color: var(--strike); }
-  .pass-count{ text-align:center; font-size: 11px; color: var(--muted); margin-top: 8px; }
 
   .loading{ text-align:center; color:var(--muted); padding:60px 0; font-size:13px; }
 </style>
@@ -275,20 +284,20 @@
     <div id="mainContent" style="display:none;">
       <div class="game-card">
         <div class="game-top">
-          <div class="game-num">第<b id="gameNumVal">0</b>試合</div>
+          <div class="game-num">第<b id="gameNumVal">0</b>試合<span class="half-badge" id="halfLabel"></span></div>
           <button class="roulette-btn" id="rouletteBtn">🎲 ルーレットで開始</button>
         </div>
         <div class="role-grid">
           <div class="role-card pitcher" id="pitcherCard">
-            <div class="role-tag">投手 ・ 後攻</div>
+            <div class="role-tag" id="pitcherRoleTag">投手</div>
             <div class="role-name placeholder" id="pitcherName">−</div>
           </div>
           <div class="role-card batter" id="batterCard">
-            <div class="role-tag">バッター ・ 先攻</div>
+            <div class="role-tag" id="batterRoleTag">バッター</div>
             <div class="role-name placeholder" id="batterName">−</div>
           </div>
         </div>
-        <div class="waiting-note" id="waitingNote">ルーレットを回して投手・バッターを決めましょう</div>
+        <div class="waiting-note" id="waitingNote">最初の1試合だけルーレットで先攻・後攻を決めます。以降は各試合で表→裏の順に自動進行します。</div>
       </div>
 
       <div class="progress-card">
@@ -306,6 +315,8 @@
           <div class="player-total-nums">
             <div class="mini-stat hit"><span class="dot hit"></span><span id="totalHitA">0</span></div>
             <div class="mini-stat strike"><span class="dot strike"></span><span id="totalStrikeA">0</span></div>
+            <div class="mini-stat ball"><span class="dot ball"></span><span id="totalBallA">0</span></div>
+            <div class="mini-stat foul"><span class="dot foul"></span><span id="totalFoulA">0</span></div>
           </div>
         </div>
         <div class="player-total-row">
@@ -313,6 +324,8 @@
           <div class="player-total-nums">
             <div class="mini-stat hit"><span class="dot hit"></span><span id="totalHitB">0</span></div>
             <div class="mini-stat strike"><span class="dot strike"></span><span id="totalStrikeB">0</span></div>
+            <div class="mini-stat ball"><span class="dot ball"></span><span id="totalBallB">0</span></div>
+            <div class="mini-stat foul"><span class="dot foul"></span><span id="totalFoulB">0</span></div>
           </div>
         </div>
       </div>
@@ -336,15 +349,26 @@
               <button class="cbtn plus strike" data-act="strike-plus">＋</button>
             </div>
           </div>
+          <div>
+            <div class="stat-label"><span class="dot ball"></span>ボール</div>
+            <div class="stat-row">
+              <button class="cbtn minus" data-act="pass-minus">−</button>
+              <div class="stat-num ball" id="passVal">0</div>
+              <button class="cbtn plus ball" data-act="pass-plus">＋</button>
+            </div>
+          </div>
+          <div>
+            <div class="stat-label"><span class="dot foul"></span>ファウル</div>
+            <div class="stat-row">
+              <button class="cbtn minus" data-act="foul-minus">−</button>
+              <div class="stat-num foul" id="foulVal">0</div>
+              <button class="cbtn plus foul" data-act="foul-plus">＋</button>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div class="actions-row">
-        <button class="action-btn btn-pass" id="passBtn">ボール → パス<small>カウントせず次の投球へ</small></button>
-        <button class="action-btn btn-foul" id="foulBtn">ファウル<small>カウントせず次の投球へ</small></button>
-      </div>
       <button class="action-btn btn-reset" id="resetBtn">リセット</button>
-      <div class="pass-count" id="passCountLabel"></div>
     </div>
   </div>
 </div>
@@ -385,9 +409,12 @@
     emptyNote: document.getElementById('emptyNote'),
     mainContent: document.getElementById('mainContent'),
     gameNumVal: document.getElementById('gameNumVal'),
+    halfLabel: document.getElementById('halfLabel'),
     rouletteBtn: document.getElementById('rouletteBtn'),
     pitcherCard: document.getElementById('pitcherCard'),
     batterCard: document.getElementById('batterCard'),
+    pitcherRoleTag: document.getElementById('pitcherRoleTag'),
+    batterRoleTag: document.getElementById('batterRoleTag'),
     pitcherName: document.getElementById('pitcherName'),
     batterName: document.getElementById('batterName'),
     waitingNote: document.getElementById('waitingNote'),
@@ -395,17 +422,20 @@
     lamps: document.getElementById('lamps'),
     hitVal: document.getElementById('hitVal'),
     strikeVal: document.getElementById('strikeVal'),
+    passVal: document.getElementById('passVal'),
+    foulVal: document.getElementById('foulVal'),
     totalsTitle: document.getElementById('totalsTitle'),
     totalNameA: document.getElementById('totalNameA'),
     totalNameB: document.getElementById('totalNameB'),
     totalHitA: document.getElementById('totalHitA'),
     totalStrikeA: document.getElementById('totalStrikeA'),
+    totalBallA: document.getElementById('totalBallA'),
+    totalFoulA: document.getElementById('totalFoulA'),
     totalHitB: document.getElementById('totalHitB'),
     totalStrikeB: document.getElementById('totalStrikeB'),
-    passBtn: document.getElementById('passBtn'),
-    foulBtn: document.getElementById('foulBtn'),
+    totalBallB: document.getElementById('totalBallB'),
+    totalFoulB: document.getElementById('totalFoulB'),
     resetBtn: document.getElementById('resetBtn'),
-    passCountLabel: document.getElementById('passCountLabel'),
   };
 
   let state = {
@@ -415,7 +445,7 @@
     pstate: {}         // id -> {gameNumber, batter: 'A'|'B'|null, stats:{hit,strike,pass}, totals:{A:{},B:{}}}
   };
 
-  function blankPState(){ return { gameNumber: 0, batter: null, stats: { hit:0, strike:0, pass:0, foul:0 }, totals: { A:{hit:0,strike:0,pass:0,foul:0}, B:{hit:0,strike:0,pass:0,foul:0} } }; }
+  function blankPState(){ return { gameNumber: 0, half: null, leadBatter: null, batter: null, stats: { hit:0, strike:0, pass:0, foul:0 }, totals: { A:{hit:0,strike:0,pass:0,foul:0}, B:{hit:0,strike:0,pass:0,foul:0} } }; }
   function uid(){ return 'p' + Date.now() + Math.floor(Math.random()*1000); }
 
   async function save(key, value){
@@ -457,6 +487,10 @@
       const t = ps0.totals;
       if(!t || !t.A || !t.B) ps0.totals = { A:{hit:0,strike:0,pass:0,foul:0}, B:{hit:0,strike:0,pass:0,foul:0} };
       else { if(t.A.foul === undefined) t.A.foul = 0; if(t.B.foul === undefined) t.B.foul = 0; }
+      if(ps0.half === undefined){
+        if(ps0.batter){ ps0.leadBatter = ps0.batter; ps0.half = 'top'; }
+        else { ps0.leadBatter = null; ps0.half = null; ps0.batter = null; }
+      }
     }
     if(!state.currentId && state.pairs.length){
       state.currentId = state.pairs[0].id;
@@ -506,7 +540,15 @@
     const ps = currentPState();
 
     els.gameNumVal.textContent = ps.gameNumber;
-    els.rouletteBtn.textContent = ps.gameNumber === 0 ? '🎲 ルーレットで開始' : '🎲 次の試合へ';
+    els.halfLabel.textContent = ps.half === 'top' ? '表' : (ps.half === 'bottom' ? '裏' : '');
+
+    if(ps.leadBatter === null){
+      els.rouletteBtn.textContent = '🎲 ルーレットで先攻・後攻を決める';
+    } else if(ps.half === 'top'){
+      els.rouletteBtn.textContent = '▶ 裏へ進む';
+    } else {
+      els.rouletteBtn.textContent = '▶ 次の試合へ（表）';
+    }
 
     if(ps.batter){
       const batterName = ps.batter === 'A' ? pair.name1 : pair.name2;
@@ -518,6 +560,10 @@
       els.batterCard.classList.add('set');
       els.pitcherCard.classList.add('set');
       els.waitingNote.style.display = 'none';
+      const battingSideLabel = ps.half === 'top' ? '先攻' : '後攻';
+      const pitchingSideLabel = ps.half === 'top' ? '後攻' : '先攻';
+      els.batterRoleTag.textContent = 'バッター ・ ' + battingSideLabel;
+      els.pitcherRoleTag.textContent = '投手 ・ ' + pitchingSideLabel;
     } else {
       els.batterName.textContent = '−';
       els.pitcherName.textContent = '−';
@@ -526,24 +572,38 @@
       els.batterCard.classList.remove('set');
       els.pitcherCard.classList.remove('set');
       els.waitingNote.style.display = 'block';
+      els.batterRoleTag.textContent = 'バッター';
+      els.pitcherRoleTag.textContent = '投手';
     }
 
     els.hitVal.textContent = ps.stats.hit;
     els.strikeVal.textContent = ps.stats.strike;
-    const extras = [];
-    if(ps.stats.pass > 0) extras.push('ボール（パス）: ' + ps.stats.pass);
-    if(ps.stats.foul > 0) extras.push('ファウル: ' + ps.stats.foul);
-    els.passCountLabel.textContent = extras.join('　');
+    els.passVal.textContent = ps.stats.pass;
+    els.foulVal.textContent = ps.stats.foul;
 
     els.totalsTitle.textContent = '通算成績（全' + ps.gameNumber + '試合）';
     els.totalNameA.textContent = pair.name1;
     els.totalNameB.textContent = pair.name2;
-    const liveA = { hit: ps.totals.A.hit + (ps.batter === 'A' ? ps.stats.hit : 0), strike: ps.totals.A.strike + (ps.batter === 'A' ? ps.stats.strike : 0) };
-    const liveB = { hit: ps.totals.B.hit + (ps.batter === 'B' ? ps.stats.hit : 0), strike: ps.totals.B.strike + (ps.batter === 'B' ? ps.stats.strike : 0) };
+    const liveA = {
+      hit: ps.totals.A.hit + (ps.batter === 'A' ? ps.stats.hit : 0),
+      strike: ps.totals.A.strike + (ps.batter === 'A' ? ps.stats.strike : 0),
+      pass: ps.totals.A.pass + (ps.batter === 'A' ? ps.stats.pass : 0),
+      foul: ps.totals.A.foul + (ps.batter === 'A' ? ps.stats.foul : 0)
+    };
+    const liveB = {
+      hit: ps.totals.B.hit + (ps.batter === 'B' ? ps.stats.hit : 0),
+      strike: ps.totals.B.strike + (ps.batter === 'B' ? ps.stats.strike : 0),
+      pass: ps.totals.B.pass + (ps.batter === 'B' ? ps.stats.pass : 0),
+      foul: ps.totals.B.foul + (ps.batter === 'B' ? ps.stats.foul : 0)
+    };
     els.totalHitA.textContent = liveA.hit;
     els.totalStrikeA.textContent = liveA.strike;
+    els.totalBallA.textContent = liveA.pass;
+    els.totalFoulA.textContent = liveA.foul;
     els.totalHitB.textContent = liveB.hit;
     els.totalStrikeB.textContent = liveB.strike;
+    els.totalBallB.textContent = liveB.pass;
+    els.totalFoulB.textContent = liveB.foul;
 
     const total = ps.stats.hit + ps.stats.strike + ps.stats.foul;
     els.progressCount.textContent = total + ' / ' + state.perRound;
@@ -649,6 +709,10 @@
       const ps0 = state.pstate[p.id];
       if(ps0.stats.foul === undefined) ps0.stats.foul = 0;
       if(!ps0.totals || !ps0.totals.A || !ps0.totals.B) ps0.totals = { A:{hit:0,strike:0,pass:0,foul:0}, B:{hit:0,strike:0,pass:0,foul:0} };
+      if(ps0.half === undefined){
+        if(ps0.batter){ ps0.leadBatter = ps0.batter; ps0.half = 'top'; }
+        else { ps0.leadBatter = null; ps0.half = null; ps0.batter = null; }
+      }
     }
     await persistPairs();
     for(const p of state.pairs){ await persistPState(p.id); }
@@ -681,24 +745,6 @@
     });
   });
 
-  // --- pass button ---
-  els.passBtn.onclick = async () => {
-    if(!state.currentId) return;
-    const ps = currentPState();
-    ps.stats.pass += 1;
-    await persistPState(state.currentId);
-    render();
-  };
-
-  // --- foul button ---
-  els.foulBtn.onclick = async () => {
-    if(!state.currentId) return;
-    const ps = currentPState();
-    ps.stats.foul += 1;
-    await persistPState(state.currentId);
-    render();
-  };
-
   // --- reset button ---
   let resetArmTimer = null;
   els.resetBtn.onclick = async () => {
@@ -716,58 +762,76 @@
     render();
   };
 
-  // --- roulette ---
+  // --- game advance: roulette decides 先攻/後攻 once; each game then plays 表 (先攻 bats) then 裏 (後攻 bats) ---
+  function finalizeHalf(ps){
+    if(ps.batter){
+      const b = ps.batter;
+      ps.totals[b].hit += ps.stats.hit;
+      ps.totals[b].strike += ps.stats.strike;
+      ps.totals[b].pass += ps.stats.pass;
+      ps.totals[b].foul += ps.stats.foul;
+    }
+    ps.stats = { hit:0, strike:0, pass:0, foul:0 };
+  }
+
   els.rouletteBtn.onclick = async () => {
     if(!state.currentId) return;
     const pair = currentPair();
     const ps = currentPState();
-    els.rouletteBtn.disabled = true;
-    els.waitingNote.style.display = 'none';
-    els.batterCard.classList.remove('set');
-    els.pitcherCard.classList.remove('set');
 
-    const finalBatter = Math.random() < 0.5 ? 'A' : 'B';
-    const steps = 14;
-    let i = 0;
-    let delay = 60;
+    if(ps.leadBatter === null){
+      // decided once: who bats first (先攻) for every game's 表
+      els.rouletteBtn.disabled = true;
+      els.waitingNote.style.display = 'none';
+      els.batterCard.classList.remove('set');
+      els.pitcherCard.classList.remove('set');
 
-    function spinStep(){
-      const guess = Math.random() < 0.5 ? 'A' : 'B';
-      const bName = guess === 'A' ? pair.name1 : pair.name2;
-      const pName = guess === 'A' ? pair.name2 : pair.name1;
-      els.batterName.textContent = bName;
-      els.pitcherName.textContent = pName;
-      els.batterName.classList.add('spinning');
-      els.pitcherName.classList.add('spinning');
-      i++;
-      if(i < steps){
-        delay += 18;
-        setTimeout(spinStep, delay);
-      } else {
-        // land on final result
-        els.batterName.classList.remove('spinning');
-        els.pitcherName.classList.remove('spinning');
-        finish();
+      const finalLead = Math.random() < 0.5 ? 'A' : 'B';
+      const steps = 14;
+      let i = 0;
+      let delay = 60;
+
+      function spinStep(){
+        const guess = Math.random() < 0.5 ? 'A' : 'B';
+        els.batterName.textContent = guess === 'A' ? pair.name1 : pair.name2;
+        els.pitcherName.textContent = guess === 'A' ? pair.name2 : pair.name1;
+        els.batterName.classList.add('spinning');
+        els.pitcherName.classList.add('spinning');
+        i++;
+        if(i < steps){
+          delay += 18;
+          setTimeout(spinStep, delay);
+        } else {
+          els.batterName.classList.remove('spinning');
+          els.pitcherName.classList.remove('spinning');
+          ps.leadBatter = finalLead;
+          ps.gameNumber = 1;
+          ps.half = 'top';
+          ps.batter = finalLead;
+          ps.stats = { hit:0, strike:0, pass:0, foul:0 };
+          persistPState(state.currentId).then(() => {
+            els.rouletteBtn.disabled = false;
+            render();
+          });
+        }
       }
-    }
-
-    async function finish(){
-      if(ps.gameNumber > 0 && ps.batter){
-        const b = ps.batter;
-        ps.totals[b].hit += ps.stats.hit;
-        ps.totals[b].strike += ps.stats.strike;
-        ps.totals[b].pass += ps.stats.pass;
-        ps.totals[b].foul += ps.stats.foul;
-      }
-      ps.batter = finalBatter;
-      ps.gameNumber += 1;
-      ps.stats = { hit:0, strike:0, pass:0, foul:0 };
+      spinStep();
+    } else if(ps.half === 'top'){
+      // move from 表 to 裏 within the same game
+      finalizeHalf(ps);
+      ps.half = 'bottom';
+      ps.batter = ps.leadBatter === 'A' ? 'B' : 'A';
       await persistPState(state.currentId);
-      els.rouletteBtn.disabled = false;
+      render();
+    } else {
+      // move from 裏 to the next game's 表
+      finalizeHalf(ps);
+      ps.gameNumber += 1;
+      ps.half = 'top';
+      ps.batter = ps.leadBatter;
+      await persistPState(state.currentId);
       render();
     }
-
-    spinStep();
   };
 
   init();
