@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://tt7516902mura-maker.github.io/cutn/sitemap.xml
