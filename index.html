@@ -20,8 +20,8 @@
     --muted: #7C9081;
     --muted-2: #55684F;
   }
-  *{box-sizing:border-box; -webkit-tap-highlight-color: transparent;}
-  html,body{margin:0;padding:0;}
+  *{box-sizing:border-box; -webkit-tap-highlight-color: transparent; touch-action: manipulation;}
+  html,body{margin:0;padding:0; touch-action: manipulation;}
   body{
     background: radial-gradient(ellipse at top, #17281C 0%, var(--bg) 62%);
     color: var(--text);
@@ -152,6 +152,13 @@
   }
   .stats-title{ text-align:center; font-size:12px; color: var(--muted); letter-spacing:0.1em; margin-bottom: 12px; }
   .stat-cols{ display:grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .player-total-row{ display:flex; align-items:center; justify-content:space-between; padding: 8px 2px; }
+  .player-total-row + .player-total-row{ border-top: 1px solid var(--panel-line); }
+  .player-total-name{ font-size: 14px; font-weight: 700; color: var(--text); }
+  .player-total-nums{ display:flex; gap: 16px; }
+  .mini-stat{ display:flex; align-items:center; gap:6px; font-size: 16px; font-weight:800; font-variant-numeric: tabular-nums; }
+  .mini-stat.hit{ color: var(--hit); }
+  .mini-stat.strike{ color: var(--strike); }
   .stat-label{ display:flex; align-items:center; justify-content:center; gap:5px; font-size:12px; color:var(--muted); margin-bottom:6px; }
   .dot{ width:7px; height:7px; border-radius:50%; }
   .dot.hit{ background: var(--hit); }
@@ -211,7 +218,7 @@
         <div class="settings-label">1回の投球数</div>
         <div class="stepper">
           <button id="roundMinus">−</button>
-          <div class="val" id="roundVal">10</div>
+          <div class="val" id="roundVal">15</div>
           <button id="roundPlus">＋</button>
         </div>
       </div>
@@ -247,9 +254,27 @@
       <div class="progress-card">
         <div class="progress-top">
           <div class="label">投球数</div>
-          <div class="count" id="progressCount">0 / 10</div>
+          <div class="count" id="progressCount">0 / 15</div>
         </div>
         <div class="lamps" id="lamps"></div>
+      </div>
+
+      <div class="stats-card totals-card">
+        <div class="stats-title" id="totalsTitle">通算成績</div>
+        <div class="player-total-row">
+          <div class="player-total-name" id="totalNameA">−</div>
+          <div class="player-total-nums">
+            <div class="mini-stat hit"><span class="dot hit"></span><span id="totalHitA">0</span></div>
+            <div class="mini-stat strike"><span class="dot strike"></span><span id="totalStrikeA">0</span></div>
+          </div>
+        </div>
+        <div class="player-total-row">
+          <div class="player-total-name" id="totalNameB">−</div>
+          <div class="player-total-nums">
+            <div class="mini-stat hit"><span class="dot hit"></span><span id="totalHitB">0</span></div>
+            <div class="mini-stat strike"><span class="dot strike"></span><span id="totalStrikeB">0</span></div>
+          </div>
+        </div>
       </div>
 
       <div class="stats-card">
@@ -285,6 +310,14 @@
 
 <script>
 (function(){
+  document.addEventListener('dblclick', function(e){ e.preventDefault(); }, { passive: false });
+  let lastTouchEnd = 0;
+  document.addEventListener('touchend', function(e){
+    const now = Date.now();
+    if(now - lastTouchEnd <= 350){ e.preventDefault(); }
+    lastTouchEnd = now;
+  }, { passive: false });
+
   const els = {
     loading: document.getElementById('loading'),
     app: document.getElementById('app'),
@@ -314,6 +347,13 @@
     lamps: document.getElementById('lamps'),
     hitVal: document.getElementById('hitVal'),
     strikeVal: document.getElementById('strikeVal'),
+    totalsTitle: document.getElementById('totalsTitle'),
+    totalNameA: document.getElementById('totalNameA'),
+    totalNameB: document.getElementById('totalNameB'),
+    totalHitA: document.getElementById('totalHitA'),
+    totalStrikeA: document.getElementById('totalStrikeA'),
+    totalHitB: document.getElementById('totalHitB'),
+    totalStrikeB: document.getElementById('totalStrikeB'),
     passBtn: document.getElementById('passBtn'),
     resetBtn: document.getElementById('resetBtn'),
     passCountLabel: document.getElementById('passCountLabel'),
@@ -322,11 +362,11 @@
   let state = {
     pairs: [],        // [{id, name1, name2}]
     currentId: null,
-    perRound: 10,
-    pstate: {}         // id -> {gameNumber, batter: 'A'|'B'|null, stats:{hit,strike,pass}}
+    perRound: 15,
+    pstate: {}         // id -> {gameNumber, batter: 'A'|'B'|null, stats:{hit,strike,pass}, totals:{A:{},B:{}}}
   };
 
-  function blankPState(){ return { gameNumber: 0, batter: null, stats: { hit:0, strike:0, pass:0 } }; }
+  function blankPState(){ return { gameNumber: 0, batter: null, stats: { hit:0, strike:0, pass:0 }, totals: { A:{hit:0,strike:0,pass:0}, B:{hit:0,strike:0,pass:0} } }; }
   function uid(){ return 'p' + Date.now() + Math.floor(Math.random()*1000); }
 
   async function save(key, value){
@@ -360,6 +400,8 @@
     for(const p of state.pairs){
       const s = await load('pstate:' + p.id);
       state.pstate[p.id] = s || blankPState();
+      const t = state.pstate[p.id].totals;
+      if(!t || !t.A || !t.B) state.pstate[p.id].totals = { A:{hit:0,strike:0,pass:0}, B:{hit:0,strike:0,pass:0} };
     }
     if(!state.currentId && state.pairs.length){
       state.currentId = state.pairs[0].id;
@@ -434,6 +476,16 @@
     els.hitVal.textContent = ps.stats.hit;
     els.strikeVal.textContent = ps.stats.strike;
     els.passCountLabel.textContent = ps.stats.pass > 0 ? ('ボール（パス）: ' + ps.stats.pass) : '';
+
+    els.totalsTitle.textContent = '通算成績（全' + ps.gameNumber + '試合）';
+    els.totalNameA.textContent = pair.name1;
+    els.totalNameB.textContent = pair.name2;
+    const liveA = { hit: ps.totals.A.hit + (ps.batter === 'A' ? ps.stats.hit : 0), strike: ps.totals.A.strike + (ps.batter === 'A' ? ps.stats.strike : 0) };
+    const liveB = { hit: ps.totals.B.hit + (ps.batter === 'B' ? ps.stats.hit : 0), strike: ps.totals.B.strike + (ps.batter === 'B' ? ps.stats.strike : 0) };
+    els.totalHitA.textContent = liveA.hit;
+    els.totalStrikeA.textContent = liveA.strike;
+    els.totalHitB.textContent = liveB.hit;
+    els.totalStrikeB.textContent = liveB.strike;
 
     const total = ps.stats.hit + ps.stats.strike;
     els.progressCount.textContent = total + ' / ' + state.perRound;
@@ -580,6 +632,12 @@
     }
 
     async function finish(){
+      if(ps.gameNumber > 0 && ps.batter){
+        const b = ps.batter;
+        ps.totals[b].hit += ps.stats.hit;
+        ps.totals[b].strike += ps.stats.strike;
+        ps.totals[b].pass += ps.stats.pass;
+      }
       ps.batter = finalBatter;
       ps.gameNumber += 1;
       ps.stats = { hit:0, strike:0, pass:0 };
