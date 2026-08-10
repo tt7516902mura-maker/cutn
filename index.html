@@ -435,7 +435,7 @@
     els.strikeVal.textContent = ps.stats.strike;
     els.passCountLabel.textContent = ps.stats.pass > 0 ? ('ボール（パス）: ' + ps.stats.pass) : '';
 
-    const total = ps.stats.hit + ps.stats.strike + ps.stats.pass;
+    const total = ps.stats.hit + ps.stats.strike;
     els.progressCount.textContent = total + ' / ' + state.perRound;
 
     els.lamps.innerHTML = '';
