@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>投球カウンター</title>
+<style>
+  :root{
+    --bg: #0F1B14;
+    --panel: #17251C;
+    --panel-line: #2C4433;
+    --gold: #E8B923;
+    --gold-dim: #6B5A1F;
+    --hit: #3DDC84;
+    --hit-dim: #1F5236;
+    --strike: #FF5A4E;
+    --strike-dim: #5A2621;
+    --text: #F3F1E7;
+    --muted: #7C9081;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color: transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    background: radial-gradient(ellipse at top, #16281C 0%, var(--bg) 60%);
+    color: var(--text);
+    font-family: "Hiragino Sans", "Yu Gothic", "Meiryo", -apple-system, BlinkMacSystemFont, sans-serif;
+    min-height: 100vh;
+    padding: 14px 12px 40px;
+  }
+  .wrap{ max-width: 480px; margin: 0 auto; }
+
+  /* Header */
+  header{
+    display:flex; align-items:baseline; justify-content:space-between;
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--panel-line);
+  }
+  h1{
+    font-size: 19px;
+    letter-spacing: 0.06em;
+    margin:0;
+    color: var(--gold);
+    font-weight: 700;
+  }
+  h1 span{ color: var(--muted); font-size: 12px; font-weight: 400; margin-left: 6px; }
+  .gear-btn{
+    background:none; border:1px solid var(--panel-line); color: var(--muted);
+    width:32px; height:32px; border-radius:8px; font-size:15px; cursor:pointer;
+  }
+  .gear-btn.active{ color: var(--gold); border-color: var(--gold-dim); }
+
+  /* Member tabs */
+  .tabs{
+    display:flex; gap:6px; overflow-x:auto; padding-bottom:4px; margin-bottom:12px;
+    scrollbar-width:none;
+  }
+  .tabs::-webkit-scrollbar{ display:none; }
+  .tab{
+    flex:0 0 auto;
+    padding: 8px 14px;
+    border-radius: 999px;
+    border: 1px solid var(--panel-line);
+    background: var(--panel);
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .tab.active{
+    background: var(--gold);
+    color: #1A1400;
+    border-color: var(--gold);
+  }
+  .tab.add{
+    color: var(--gold);
+    border-style: dashed;
+    background: transparent;
+  }
+
+  .empty-note{
+    text-align:center; color: var(--muted); font-size: 13px;
+    padding: 40px 10px; border: 1px dashed var(--panel-line); border-radius: 12px;
+  }
+
+  /* Add member inline form */
+  .add-form{
+    display:none; gap:8px; margin-bottom: 12px;
+  }
+  .add-form.show{ display:flex; }
+  .add-form input{
+    flex:1; background: var(--panel); border: 1px solid var(--panel-line);
+    color: var(--text); border-radius: 8px; padding: 9px 12px; font-size: 14px;
+  }
+  .add-form input:focus{ outline:1px solid var(--gold); border-color: var(--gold); }
+  .add-form button{
+    border:none; border-radius:8px; padding: 0 16px; font-size:13px; font-weight:700; cursor:pointer;
+  }
+  .btn-ok{ background: var(--gold); color:#1A1400; }
+  .btn-cancel{ background: var(--panel); color: var(--muted); border:1px solid var(--panel-line) !important; }
+
+  /* Settings panel */
+  .settings{
+    display:none; background: var(--panel); border:1px solid var(--panel-line);
+    border-radius: 12px; padding: 12px 14px; margin-bottom: 12px;
+  }
+  .settings.show{ display:block; }
+  .settings-row{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+  .settings-row:last-child{ margin-bottom:0; }
+  .settings-label{ font-size: 13px; color: var(--muted); }
+  .stepper{ display:flex; align-items:center; gap:10px; }
+  .stepper button{
+    width:30px;height:30px;border-radius:8px;border:1px solid var(--panel-line);
+    background:#20301F; color:var(--text); font-size:16px; cursor:pointer;
+  }
+  .stepper .val{ min-width: 28px; text-align:center; font-weight:700; font-size:15px; }
+  .del-member{
+    background:none; border:none; color:#8a4a44; font-size:12px; cursor:pointer; text-decoration:underline;
+    padding:0;
+  }
+
+  /* Progress lamps */
+  .progress-card{
+    background: var(--panel); border:1px solid var(--panel-line); border-radius: 12px;
+    padding: 12px 14px; margin-bottom: 14px;
+  }
+  .progress-top{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px; }
+  .progress-top .label{ font-size:12px; color:var(--muted); letter-spacing:0.04em; }
+  .progress-top .count{ font-size: 13px; color: var(--gold); font-weight:700; font-variant-numeric: tabular-nums; }
+  .lamps{ display:flex; flex-wrap:wrap; gap:5px; }
+  .lamp{
+    width:16px; height:16px; border-radius:50%;
+    background: #223226;
+    border: 1px solid var(--panel-line);
+    transition: background .15s, box-shadow .15s;
+  }
+  .lamp.on{
+    background: var(--gold);
+    box-shadow: 0 0 7px 1px rgba(232,185,35,0.65);
+    border-color: var(--gold);
+  }
+  .lamp.over{
+    background: var(--strike);
+    box-shadow: 0 0 7px 1px rgba(255,90,78,0.65);
+    border-color: var(--strike);
+  }
+
+  /* Side panels */
+  .sides{ display:grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+  .side{
+    background: var(--panel); border:1px solid var(--panel-line); border-radius: 14px;
+    padding: 12px 10px;
+  }
+  .side-title{
+    text-align:center; font-size:13px; font-weight:700; letter-spacing:0.12em;
+    color: var(--muted); margin-bottom: 10px; text-transform:uppercase;
+  }
+  .side-title b{ color: var(--text); font-size:15px; margin-left:4px; }
+
+  .stat-block{ margin-bottom: 10px; }
+  .stat-block:last-child{ margin-bottom:0; }
+  .stat-label{ display:flex; align-items:center; gap:5px; font-size:12px; color:var(--muted); margin-bottom:4px; }
+  .dot{ width:7px; height:7px; border-radius:50%; }
+  .dot.hit{ background: var(--hit); }
+  .dot.strike{ background: var(--strike); }
+
+  .stat-row{ display:flex; align-items:center; gap:8px; }
+  .stat-num{
+    flex:1; text-align:center; font-size: 30px; font-weight:800;
+    font-variant-numeric: tabular-nums;
+    font-family: 'Arial Black', 'Hiragino Sans', sans-serif;
+  }
+  .stat-num.hit{ color: var(--hit); }
+  .stat-num.strike{ color: var(--strike); }
+
+  .cbtn{
+    width: 36px; height: 36px; border-radius: 10px; border:none;
+    font-size: 18px; font-weight:800; cursor:pointer; color:#0C1408;
+    display:flex; align-items:center; justify-content:center;
+    user-select:none;
+  }
+  .cbtn:active{ transform: scale(0.92); }
+  .cbtn.minus{ background: #2A3B28; color: var(--muted); }
+  .cbtn.plus.hit{ background: var(--hit); }
+  .cbtn.plus.strike{ background: var(--strike); }
+
+  /* Action row */
+  .actions{ display:grid; grid-template-columns: 1.4fr 1fr; gap: 10px; }
+  .action-btn{
+    border:none; border-radius: 14px; padding: 15px 10px; font-size: 14px; font-weight:700;
+    cursor:pointer; letter-spacing:0.02em;
+  }
+  .btn-pass{
+    background: #223047; color: #A9C4F0; border: 1px solid #33456A;
+  }
+  .btn-pass small{ display:block; font-weight:400; color:#7C93B8; font-size:11px; margin-top:2px; }
+  .btn-reset{
+    background: var(--panel); color: #C97B74; border: 1px solid #4A2A26;
+  }
+  .btn-reset.armed{
+    background: var(--strike); color: #2A0C09; border-color: var(--strike);
+  }
+
+  .pass-count{
+    text-align:center; font-size: 11px; color: var(--muted); margin-top: 8px;
+  }
+
+  .loading{ text-align:center; color:var(--muted); padding:60px 0; font-size:13px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>投球カウンター<span id="memberCountLabel"></span></h1>
+    <button class="gear-btn" id="gearBtn">⚙</button>
+  </header>
+
+  <div id="loading" class="loading">読み込み中…</div>
+
+  <div id="app" style="display:none;">
+    <div class="tabs" id="tabs"></div>
+
+    <div class="add-form" id="addForm">
+      <input type="text" id="newMemberInput" placeholder="名前を入力" maxlength="12">
+      <button class="btn-ok" id="addOk">追加</button>
+      <button class="btn-cancel" id="addCancel">キャンセル</button>
+    </div>
+
+    <div class="settings" id="settingsPanel">
+      <div class="settings-row">
+        <div class="settings-label">1回の投球数</div>
+        <div class="stepper">
+          <button id="roundMinus">−</button>
+          <div class="val" id="roundVal">10</div>
+          <button id="roundPlus">＋</button>
+        </div>
+      </div>
+      <div class="settings-row" id="delRow" style="display:none;">
+        <div class="settings-label">選択中のメンバーを削除</div>
+        <button class="del-member" id="delMemberBtn">削除する</button>
+      </div>
+    </div>
+
+    <div id="emptyNote" class="empty-note" style="display:none;">
+      メンバーがいません。上の「＋追加」から選手を追加してください。
+    </div>
+
+    <div id="mainContent">
+      <div class="progress-card">
+        <div class="progress-top">
+          <div class="label">投球数</div>
+          <div class="count" id="progressCount">0 / 10</div>
+        </div>
+        <div class="lamps" id="lamps"></div>
+      </div>
+
+      <div class="sides">
+        <div class="side">
+          <div class="side-title">左</div>
+          <div class="stat-block">
+            <div class="stat-label"><span class="dot hit"></span>ヒット数</div>
+            <div class="stat-row">
+              <button class="cbtn minus" data-act="left-hit-minus">−</button>
+              <div class="stat-num hit" id="leftHitVal">0</div>
+              <button class="cbtn plus hit" data-act="left-hit-plus">＋</button>
+            </div>
+          </div>
+          <div class="stat-block">
+            <div class="stat-label"><span class="dot strike"></span>ストライク</div>
+            <div class="stat-row">
+              <button class="cbtn minus" data-act="left-strike-minus">−</button>
+              <div class="stat-num strike" id="leftStrikeVal">0</div>
+              <button class="cbtn plus strike" data-act="left-strike-plus">＋</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="side">
+          <div class="side-title">右</div>
+          <div class="stat-block">
+            <div class="stat-label"><span class="dot hit"></span>ヒット数</div>
+            <div class="stat-row">
+              <button class="cbtn minus" data-act="right-hit-minus">−</button>
+              <div class="stat-num hit" id="rightHitVal">0</div>
+              <button class="cbtn plus hit" data-act="right-hit-plus">＋</button>
+            </div>
+          </div>
+          <div class="stat-block">
+            <div class="stat-label"><span class="dot strike"></span>ストライク</div>
+            <div class="stat-row">
+              <button class="cbtn minus" data-act="right-strike-minus">−</button>
+              <div class="stat-num strike" id="rightStrikeVal">0</div>
+              <button class="cbtn plus strike" data-act="right-strike-plus">＋</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="action-btn btn-pass" id="passBtn">ボール → パス<small>カウントせず次の投球へ</small></button>
+        <button class="action-btn btn-reset" id="resetBtn">リセット</button>
+      </div>
+      <div class="pass-count" id="passCountLabel"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const els = {
+    loading: document.getElementById('loading'),
+    app: document.getElementById('app'),
+    tabs: document.getElementById('tabs'),
+    addForm: document.getElementById('addForm'),
+    newMemberInput: document.getElementById('newMemberInput'),
+    addOk: document.getElementById('addOk'),
+    addCancel: document.getElementById('addCancel'),
+    gearBtn: document.getElementById('gearBtn'),
+    settingsPanel: document.getElementById('settingsPanel'),
+    roundVal: document.getElementById('roundVal'),
+    roundMinus: document.getElementById('roundMinus'),
+    roundPlus: document.getElementById('roundPlus'),
+    delRow: document.getElementById('delRow'),
+    delMemberBtn: document.getElementById('delMemberBtn'),
+    emptyNote: document.getElementById('emptyNote'),
+    mainContent: document.getElementById('mainContent'),
+    progressCount: document.getElementById('progressCount'),
+    lamps: document.getElementById('lamps'),
+    leftHitVal: document.getElementById('leftHitVal'),
+    leftStrikeVal: document.getElementById('leftStrikeVal'),
+    rightHitVal: document.getElementById('rightHitVal'),
+    rightStrikeVal: document.getElementById('rightStrikeVal'),
+    passBtn: document.getElementById('passBtn'),
+    resetBtn: document.getElementById('resetBtn'),
+    passCountLabel: document.getElementById('passCountLabel'),
+    memberCountLabel: document.getElementById('memberCountLabel'),
+  };
+
+  let state = {
+    members: [],       // [{id, name}]
+    currentId: null,
+    perRound: 10,
+    stats: {}          // id -> {left:{hit,strike}, right:{hit,strike}, pass}
+  };
+
+  function blankStats(){ return { left:{hit:0,strike:0}, right:{hit:0,strike:0}, pass:0 }; }
+  function uid(){ return 'm' + Date.now() + Math.floor(Math.random()*1000); }
+
+  async function save(key, value){
+    try{ await window.storage.set(key, JSON.stringify(value), false); }
+    catch(e){ console.error('save failed', key, e); }
+  }
+  async function load(key){
+    try{
+      const r = await window.storage.get(key, false);
+      return r ? JSON.parse(r.value) : null;
+    }catch(e){ return null; }
+  }
+
+  async function persistAll(){
+    await save('members', state.members);
+    await save('currentId', state.currentId);
+    await save('perRound', state.perRound);
+  }
+  async function persistStats(id){
+    await save('stats:' + id, state.stats[id]);
+  }
+
+  async function init(){
+    const members = await load('members');
+    const currentId = await load('currentId');
+    const perRound = await load('perRound');
+    if(members) state.members = members;
+    if(currentId) state.currentId = currentId;
+    if(perRound) state.perRound = perRound;
+
+    for(const m of state.members){
+      const s = await load('stats:' + m.id);
+      state.stats[m.id] = s || blankStats();
+    }
+    if(!state.currentId && state.members.length){
+      state.currentId = state.members[0].id;
+    }
+    els.loading.style.display = 'none';
+    els.app.style.display = 'block';
+    render();
+  }
+
+  function currentStats(){
+    if(!state.currentId) return null;
+    if(!state.stats[state.currentId]) state.stats[state.currentId] = blankStats();
+    return state.stats[state.currentId];
+  }
+
+  function render(){
+    els.memberCountLabel.textContent = state.members.length ? '' : '';
+    // tabs
+    els.tabs.innerHTML = '';
+    state.members.forEach(m => {
+      const b = document.createElement('button');
+      b.className = 'tab' + (m.id === state.currentId ? ' active' : '');
+      b.textContent = m.name;
+      b.onclick = () => { state.currentId = m.id; save('currentId', m.id); resetArm(); render(); };
+      els.tabs.appendChild(b);
+    });
+    const addBtn = document.createElement('button');
+    addBtn.className = 'tab add';
+    addBtn.textContent = '＋ 追加';
+    addBtn.onclick = () => {
+      els.addForm.classList.add('show');
+      els.newMemberInput.value = '';
+      els.newMemberInput.focus();
+    };
+    els.tabs.appendChild(addBtn);
+
+    // settings
+    els.roundVal.textContent = state.perRound;
+    els.delRow.style.display = state.currentId ? 'flex' : 'none';
+
+    const hasMembers = state.members.length > 0;
+    els.emptyNote.style.display = hasMembers ? 'none' : 'block';
+    els.mainContent.style.display = hasMembers ? 'block' : 'none';
+    if(!hasMembers) return;
+
+    const s = currentStats();
+    els.leftHitVal.textContent = s.left.hit;
+    els.leftStrikeVal.textContent = s.left.strike;
+    els.rightHitVal.textContent = s.right.hit;
+    els.rightStrikeVal.textContent = s.right.strike;
+    els.passCountLabel.textContent = s.pass > 0 ? ('ボール（パス）: ' + s.pass) : '';
+
+    const total = s.left.hit + s.left.strike + s.right.hit + s.right.strike + s.pass;
+    els.progressCount.textContent = total + ' / ' + state.perRound;
+
+    // lamps
+    els.lamps.innerHTML = '';
+    const lampTotal = Math.max(state.perRound, total);
+    for(let i=0;i<lampTotal;i++){
+      const d = document.createElement('div');
+      d.className = 'lamp';
+      if(i < total){
+        d.classList.add(i < state.perRound ? 'on' : 'over');
+      }
+      els.lamps.appendChild(d);
+    }
+  }
+
+  function resetArm(){
+    els.resetBtn.classList.remove('armed');
+    els.resetBtn.textContent = 'リセット';
+    clearTimeout(resetArmTimer);
+  }
+
+  // --- member add ---
+  els.addOk.onclick = async () => {
+    const name = els.newMemberInput.value.trim();
+    if(!name) return;
+    const id = uid();
+    state.members.push({id, name});
+    state.stats[id] = blankStats();
+    state.currentId = id;
+    els.addForm.classList.remove('show');
+    await persistAll();
+    await persistStats(id);
+    render();
+  };
+  els.addCancel.onclick = () => { els.addForm.classList.remove('show'); };
+  els.newMemberInput.addEventListener('keydown', (e) => { if(e.key === 'Enter') els.addOk.click(); });
+
+  // --- delete member ---
+  els.delMemberBtn.onclick = async () => {
+    if(!state.currentId) return;
+    if(els.delMemberBtn.textContent === '削除する'){
+      els.delMemberBtn.textContent = '本当に削除？';
+      setTimeout(() => { if(els.delMemberBtn.textContent === '本当に削除？') els.delMemberBtn.textContent = '削除する'; }, 3000);
+      return;
+    }
+    const id = state.currentId;
+    state.members = state.members.filter(m => m.id !== id);
+    delete state.stats[id];
+    try{ await window.storage.delete('stats:' + id, false); }catch(e){}
+    state.currentId = state.members.length ? state.members[0].id : null;
+    els.delMemberBtn.textContent = '削除する';
+    await persistAll();
+    render();
+  };
+
+  // --- settings ---
+  els.gearBtn.onclick = () => {
+    els.settingsPanel.classList.toggle('show');
+    els.gearBtn.classList.toggle('active');
+  };
+  els.roundMinus.onclick = async () => {
+    state.perRound = Math.max(1, state.perRound - 1);
+    await save('perRound', state.perRound);
+    render();
+  };
+  els.roundPlus.onclick = async () => {
+    state.perRound = Math.min(200, state.perRound + 1);
+    await save('perRound', state.perRound);
+    render();
+  };
+
+  // --- stat buttons ---
+  document.querySelectorAll('.cbtn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      if(!state.currentId) return;
+      const act = btn.dataset.act;
+      const [side, kind, dir] = act.split('-');
+      const s = currentStats();
+      const delta = dir === 'plus' ? 1 : -1;
+      s[side][kind] = Math.max(0, s[side][kind] + delta);
+      await persistStats(state.currentId);
+      render();
+    });
+  });
+
+  // --- pass button ---
+  els.passBtn.onclick = async () => {
+    if(!state.currentId) return;
+    const s = currentStats();
+    s.pass += 1;
+    await persistStats(state.currentId);
+    render();
+  };
+
+  // --- reset button (two-step confirm) ---
+  let resetArmTimer = null;
+  els.resetBtn.onclick = async () => {
+    if(!state.currentId) return;
+    if(!els.resetBtn.classList.contains('armed')){
+      els.resetBtn.classList.add('armed');
+      els.resetBtn.textContent = 'もう一度押して確定';
+      resetArmTimer = setTimeout(resetArm, 3000);
+      return;
+    }
+    state.stats[state.currentId] = blankStats();
+    await persistStats(state.currentId);
+    resetArm();
+    render();
+  };
+
+  init();
+})();
+</script>
+</body>
+</html>
