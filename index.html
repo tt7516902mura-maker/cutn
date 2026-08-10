@@ -186,7 +186,7 @@
   .player-total-row{ padding: 10px 2px; }
   .player-total-row + .player-total-row{ border-top: 1px solid var(--panel-line); }
   .player-total-name{ font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
-  .player-total-nums{ display:grid; grid-template-columns: repeat(2, auto); gap: 6px 20px; justify-content:start; }
+  .player-total-nums{ display:grid; grid-template-columns: repeat(2, auto); gap: 6px 20px; justify-content:end; }
   .mini-stat{ display:flex; align-items:center; gap:6px; font-size: 15px; font-weight:800; font-variant-numeric: tabular-nums; }
   .mini-stat.hit{ color: var(--hit); }
   .mini-stat.strike{ color: var(--strike); }
@@ -208,6 +208,7 @@
   .cbtn{ width: 34px; height: 34px; border-radius: 10px; border:none; font-size: 17px; font-weight:800;
     cursor:pointer; color:#0C1408; display:flex; align-items:center; justify-content:center; user-select:none; flex-shrink:0; }
   .cbtn:active{ transform: scale(0.92); }
+  .cbtn:disabled{ opacity: 0.35; cursor: not-allowed; }
   .cbtn.minus{ background: #2A3B28; color: var(--muted); }
   .cbtn.plus.hit{ background: var(--hit); }
   .cbtn.plus.strike{ background: var(--strike); }
@@ -377,9 +378,11 @@
 (function(){
   document.addEventListener('dblclick', function(e){ e.preventDefault(); }, { passive: false });
   let lastTouchEnd = 0;
+  let lastTouchTarget = null;
   document.addEventListener('touchend', function(e){
     const now = Date.now();
-    if(now - lastTouchEnd <= 350){ e.preventDefault(); }
+    if(e.target === lastTouchTarget && now - lastTouchEnd <= 350){ e.preventDefault(); }
+    lastTouchTarget = e.target;
     lastTouchEnd = now;
   }, { passive: false });
 
@@ -616,6 +619,11 @@
       if(i < total) d.classList.add(i < state.perRound ? 'on' : 'over');
       els.lamps.appendChild(d);
     }
+
+    const atLimit = total >= state.perRound;
+    document.querySelectorAll('.cbtn.plus.hit, .cbtn.plus.strike, .cbtn.plus.foul').forEach(b => {
+      b.disabled = atLimit;
+    });
   }
 
   function resetArm(){
@@ -733,12 +741,17 @@
   };
 
   // --- stat buttons ---
+  const PITCH_COUNTED_KINDS = ['hit', 'strike', 'foul'];
   document.querySelectorAll('.cbtn').forEach(btn => {
     btn.addEventListener('click', async () => {
       if(!state.currentId) return;
       const [kind, dir] = btn.dataset.act.split('-');
       const ps = currentPState();
       const delta = dir === 'plus' ? 1 : -1;
+      if(delta > 0 && PITCH_COUNTED_KINDS.includes(kind)){
+        const pitchTotal = ps.stats.hit + ps.stats.strike + ps.stats.foul;
+        if(pitchTotal >= state.perRound) return; // already at the pitch-count limit
+      }
       ps.stats[kind] = Math.max(0, ps.stats[kind] + delta);
       await persistPState(state.currentId);
       render();
