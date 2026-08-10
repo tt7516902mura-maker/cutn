@@ -4,6 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>対戦カウンター</title>
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#0F1B14">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="対戦カウンター">
+<link rel="apple-touch-icon" href="./apple-touch-icon.png">
+<link rel="icon" href="./icon-192.png">
 <style>
   :root{
     --bg: #0F1B14;
@@ -100,6 +108,22 @@
   }
   .stepper .val{ min-width: 24px; text-align:center; font-weight:700; font-size:14px; font-variant-numeric: tabular-nums; }
   .del-pair{ background:none; border:none; color:#C97B74; font-size:12px; cursor:pointer; text-decoration:underline; padding:0; }
+  .backup-row{ align-items:center; }
+  .backup-btns{ display:flex; gap:8px; }
+  .backup-btn{
+    background:#20301F; border:1px solid var(--panel-line); color: var(--text);
+    font-size:12px; font-weight:700; padding: 7px 12px; border-radius:8px; cursor:pointer;
+  }
+  .backup-btn.primary{ background: var(--gold); color:#1A1400; border-color: var(--gold); }
+  .backup-area{ margin-top: 4px; padding-top: 10px; border-top: 1px solid var(--panel-line); }
+  .backup-area textarea{
+    width:100%; min-height: 90px; background: var(--panel-2); border:1px solid var(--panel-line);
+    color: var(--text); border-radius:8px; padding:8px; font-size:11px; font-family: monospace;
+    resize: vertical;
+  }
+  .backup-hint{ font-size: 10.5px; color: var(--muted); margin-top: 6px; line-height:1.5; }
+  .backup-apply-row{ margin-top: 8px; }
+  .backup-apply-row .backup-btn{ width:100%; }
 
   /* Game card */
   .game-card{
@@ -176,11 +200,13 @@
   .cbtn.plus.strike{ background: var(--strike); }
 
   /* Action row */
-  .actions{ display:grid; grid-template-columns: 1.4fr 1fr; gap: 10px; }
+  .actions-row{ display:grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
   .action-btn{ border:none; border-radius: 14px; padding: 14px 10px; font-size: 13.5px; font-weight:700; cursor:pointer; }
   .btn-pass{ background: #223047; color: #A9C4F0; border: 1px solid #33456A; }
   .btn-pass small{ display:block; font-weight:400; color:#7C93B8; font-size:10.5px; margin-top:2px; }
-  .btn-reset{ background: var(--panel); color: #C97B74; border: 1px solid #4A2A26; }
+  .btn-foul{ background: #3A2F1A; color: #E8C88A; border: 1px solid #5E4A24; }
+  .btn-foul small{ display:block; font-weight:400; color:#B89A63; font-size:10.5px; margin-top:2px; }
+  .btn-reset{ width:100%; background: var(--panel); color: #C97B74; border: 1px solid #4A2A26; }
   .btn-reset.armed{ background: var(--strike); color: #2A0C09; border-color: var(--strike); }
   .pass-count{ text-align:center; font-size: 11px; color: var(--muted); margin-top: 8px; }
 
@@ -225,6 +251,20 @@
       <div class="settings-row" id="delRow" style="display:none;">
         <div class="settings-label">選択中の組を削除</div>
         <button class="del-pair" id="delPairBtn">削除する</button>
+      </div>
+      <div class="settings-row backup-row">
+        <div class="settings-label">データのバックアップ</div>
+        <div class="backup-btns">
+          <button class="backup-btn" id="exportBtn">書き出す</button>
+          <button class="backup-btn" id="importBtn">読み込む</button>
+        </div>
+      </div>
+      <div class="backup-area" id="backupArea" style="display:none;">
+        <textarea id="backupText" placeholder="ここにバックアップ文字列が表示されます。読み込む際はここに貼り付けてください。"></textarea>
+        <div class="backup-hint" id="backupHint">全選択してコピーし、安全な場所に保存してください。</div>
+        <div class="backup-apply-row" id="backupApplyRow" style="display:none;">
+          <button class="backup-btn primary" id="applyImportBtn">この内容を反映する</button>
+        </div>
       </div>
     </div>
 
@@ -299,10 +339,11 @@
         </div>
       </div>
 
-      <div class="actions">
+      <div class="actions-row">
         <button class="action-btn btn-pass" id="passBtn">ボール → パス<small>カウントせず次の投球へ</small></button>
-        <button class="action-btn btn-reset" id="resetBtn">リセット</button>
+        <button class="action-btn btn-foul" id="foulBtn">ファウル<small>カウントせず次の投球へ</small></button>
       </div>
+      <button class="action-btn btn-reset" id="resetBtn">リセット</button>
       <div class="pass-count" id="passCountLabel"></div>
     </div>
   </div>
@@ -334,6 +375,13 @@
     roundPlus: document.getElementById('roundPlus'),
     delRow: document.getElementById('delRow'),
     delPairBtn: document.getElementById('delPairBtn'),
+    exportBtn: document.getElementById('exportBtn'),
+    importBtn: document.getElementById('importBtn'),
+    applyImportBtn: document.getElementById('applyImportBtn'),
+    backupArea: document.getElementById('backupArea'),
+    backupText: document.getElementById('backupText'),
+    backupHint: document.getElementById('backupHint'),
+    backupApplyRow: document.getElementById('backupApplyRow'),
     emptyNote: document.getElementById('emptyNote'),
     mainContent: document.getElementById('mainContent'),
     gameNumVal: document.getElementById('gameNumVal'),
@@ -355,6 +403,7 @@
     totalHitB: document.getElementById('totalHitB'),
     totalStrikeB: document.getElementById('totalStrikeB'),
     passBtn: document.getElementById('passBtn'),
+    foulBtn: document.getElementById('foulBtn'),
     resetBtn: document.getElementById('resetBtn'),
     passCountLabel: document.getElementById('passCountLabel'),
   };
@@ -366,7 +415,7 @@
     pstate: {}         // id -> {gameNumber, batter: 'A'|'B'|null, stats:{hit,strike,pass}, totals:{A:{},B:{}}}
   };
 
-  function blankPState(){ return { gameNumber: 0, batter: null, stats: { hit:0, strike:0, pass:0 }, totals: { A:{hit:0,strike:0,pass:0}, B:{hit:0,strike:0,pass:0} } }; }
+  function blankPState(){ return { gameNumber: 0, batter: null, stats: { hit:0, strike:0, pass:0, foul:0 }, totals: { A:{hit:0,strike:0,pass:0,foul:0}, B:{hit:0,strike:0,pass:0,foul:0} } }; }
   function uid(){ return 'p' + Date.now() + Math.floor(Math.random()*1000); }
 
   async function save(key, value){
@@ -378,6 +427,9 @@
       const r = await window.storage.get(key, false);
       return r ? JSON.parse(r.value) : null;
     }catch(e){ return null; }
+  }
+  async function removeKey(key){
+    try{ await window.storage.delete(key, false); }catch(e){}
   }
 
   async function persistPairs(){
@@ -400,8 +452,11 @@
     for(const p of state.pairs){
       const s = await load('pstate:' + p.id);
       state.pstate[p.id] = s || blankPState();
-      const t = state.pstate[p.id].totals;
-      if(!t || !t.A || !t.B) state.pstate[p.id].totals = { A:{hit:0,strike:0,pass:0}, B:{hit:0,strike:0,pass:0} };
+      const ps0 = state.pstate[p.id];
+      if(ps0.stats.foul === undefined) ps0.stats.foul = 0;
+      const t = ps0.totals;
+      if(!t || !t.A || !t.B) ps0.totals = { A:{hit:0,strike:0,pass:0,foul:0}, B:{hit:0,strike:0,pass:0,foul:0} };
+      else { if(t.A.foul === undefined) t.A.foul = 0; if(t.B.foul === undefined) t.B.foul = 0; }
     }
     if(!state.currentId && state.pairs.length){
       state.currentId = state.pairs[0].id;
@@ -475,7 +530,10 @@
 
     els.hitVal.textContent = ps.stats.hit;
     els.strikeVal.textContent = ps.stats.strike;
-    els.passCountLabel.textContent = ps.stats.pass > 0 ? ('ボール（パス）: ' + ps.stats.pass) : '';
+    const extras = [];
+    if(ps.stats.pass > 0) extras.push('ボール（パス）: ' + ps.stats.pass);
+    if(ps.stats.foul > 0) extras.push('ファウル: ' + ps.stats.foul);
+    els.passCountLabel.textContent = extras.join('　');
 
     els.totalsTitle.textContent = '通算成績（全' + ps.gameNumber + '試合）';
     els.totalNameA.textContent = pair.name1;
@@ -487,7 +545,7 @@
     els.totalHitB.textContent = liveB.hit;
     els.totalStrikeB.textContent = liveB.strike;
 
-    const total = ps.stats.hit + ps.stats.strike;
+    const total = ps.stats.hit + ps.stats.strike + ps.stats.foul;
     els.progressCount.textContent = total + ' / ' + state.perRound;
 
     els.lamps.innerHTML = '';
@@ -546,6 +604,59 @@
     els.settingsPanel.classList.toggle('show');
     els.gearBtn.classList.toggle('active');
   };
+
+  // --- backup: export ---
+  els.exportBtn.onclick = () => {
+    const payload = {
+      v: 1,
+      pairs: state.pairs,
+      currentId: state.currentId,
+      perRound: state.perRound,
+      pstate: state.pstate
+    };
+    els.backupText.value = JSON.stringify(payload);
+    els.backupHint.textContent = '全選択してコピーし、安全な場所（メモアプリなど）に保存してください。';
+    els.backupApplyRow.style.display = 'none';
+    els.backupArea.style.display = 'block';
+    els.backupText.focus();
+    els.backupText.select();
+  };
+
+  // --- backup: import (show paste area) ---
+  els.importBtn.onclick = () => {
+    els.backupText.value = '';
+    els.backupHint.textContent = 'バックアップ文字列を貼り付けて「この内容を反映する」を押してください。';
+    els.backupApplyRow.style.display = 'block';
+    els.backupArea.style.display = 'block';
+    els.backupText.focus();
+  };
+
+  // --- backup: apply pasted data ---
+  els.applyImportBtn.onclick = async () => {
+    let data;
+    try{ data = JSON.parse(els.backupText.value); }
+    catch(e){ els.backupHint.textContent = '読み込めませんでした。文字列が正しいか確認してください。'; return; }
+    if(!data || !Array.isArray(data.pairs) || typeof data.pstate !== 'object'){
+      els.backupHint.textContent = '形式が正しくないデータです。';
+      return;
+    }
+    state.pairs = data.pairs;
+    state.currentId = data.currentId || (data.pairs[0] ? data.pairs[0].id : null);
+    state.perRound = data.perRound || 15;
+    state.pstate = data.pstate;
+    for(const p of state.pairs){
+      if(!state.pstate[p.id]) state.pstate[p.id] = blankPState();
+      const ps0 = state.pstate[p.id];
+      if(ps0.stats.foul === undefined) ps0.stats.foul = 0;
+      if(!ps0.totals || !ps0.totals.A || !ps0.totals.B) ps0.totals = { A:{hit:0,strike:0,pass:0,foul:0}, B:{hit:0,strike:0,pass:0,foul:0} };
+    }
+    await persistPairs();
+    for(const p of state.pairs){ await persistPState(p.id); }
+    els.backupHint.textContent = '復元しました。';
+    els.backupApplyRow.style.display = 'none';
+    render();
+  };
+
   els.roundMinus.onclick = async () => {
     state.perRound = Math.max(1, state.perRound - 1);
     await save('perRound', state.perRound);
@@ -579,6 +690,15 @@
     render();
   };
 
+  // --- foul button ---
+  els.foulBtn.onclick = async () => {
+    if(!state.currentId) return;
+    const ps = currentPState();
+    ps.stats.foul += 1;
+    await persistPState(state.currentId);
+    render();
+  };
+
   // --- reset button ---
   let resetArmTimer = null;
   els.resetBtn.onclick = async () => {
@@ -590,7 +710,7 @@
       return;
     }
     const ps = currentPState();
-    ps.stats = { hit:0, strike:0, pass:0 };
+    ps.stats = { hit:0, strike:0, pass:0, foul:0 };
     await persistPState(state.currentId);
     resetArm();
     render();
@@ -637,10 +757,11 @@
         ps.totals[b].hit += ps.stats.hit;
         ps.totals[b].strike += ps.stats.strike;
         ps.totals[b].pass += ps.stats.pass;
+        ps.totals[b].foul += ps.stats.foul;
       }
       ps.batter = finalBatter;
       ps.gameNumber += 1;
-      ps.stats = { hit:0, strike:0, pass:0 };
+      ps.stats = { hit:0, strike:0, pass:0, foul:0 };
       await persistPState(state.currentId);
       els.rouletteBtn.disabled = false;
       render();
@@ -651,6 +772,13 @@
 
   init();
 })();
+
+if('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  });
+}
+
 </script>
 </body>
 </html>
