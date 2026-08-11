@@ -199,17 +199,21 @@
   .player-total-row + .player-total-row{ border-top: 1px solid var(--panel-line); }
   .player-total-name{ font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
   .player-total-nums{ display:grid; grid-template-columns: repeat(2, auto); gap: 6px 20px; justify-content:end; }
-  .mini-stat{ display:flex; align-items:center; gap:6px; font-size: 15px; font-weight:800; font-variant-numeric: tabular-nums; }
+  .mini-stat{ display:flex; align-items:center; gap:7px; font-size: 16px; font-weight:800; font-variant-numeric: tabular-nums; }
+  .mini-stat .dot{ width:11px; height:11px; }
+  .mini-stat .dot.ball{ border-width:2.5px; }
+  .stat-label{ display:flex; align-items:center; justify-content:center; gap:8px; font-size:12px; color:var(--muted); margin-bottom:8px; }
+  .stat-label .dot{ width:22px; height:22px; }
+  .stat-label .dot.ball{ border-width:3.5px; }
+  .dot{ width:7px; height:7px; box-sizing:border-box; flex-shrink:0; }
+  .dot.hit{ background: var(--hit); border-radius:50%; }
+  .dot.strike{ background: var(--strike); border-radius:22%; }
+  .dot.ball{ background: transparent; border:2px solid var(--ball); border-radius:50%; }
+  .dot.foul{ background: var(--foul); border-radius:16%; transform: rotate(45deg); }
   .mini-stat.hit{ color: var(--hit); }
   .mini-stat.strike{ color: var(--strike); }
   .mini-stat.ball{ color: var(--ball); }
   .mini-stat.foul{ color: var(--foul); }
-  .stat-label{ display:flex; align-items:center; justify-content:center; gap:5px; font-size:12px; color:var(--muted); margin-bottom:6px; }
-  .dot{ width:7px; height:7px; box-sizing:border-box; }
-  .dot.hit{ background: var(--hit); border-radius:50%; }
-  .dot.strike{ background: var(--strike); border-radius:1px; }
-  .dot.ball{ background: transparent; border:2px solid var(--ball); border-radius:50%; }
-  .dot.foul{ background: var(--foul); border-radius:1px; transform: rotate(45deg); }
   .stat-row{ display:flex; align-items:center; justify-content:center; gap:8px; }
   .stat-num{ min-width:44px; text-align:center; font-size: 32px; font-weight:800; font-variant-numeric: tabular-nums;
     font-family: 'Arial Black', 'Hiragino Sans', sans-serif; }
