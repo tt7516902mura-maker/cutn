@@ -13,7 +13,7 @@
 <meta property="og:url" content="https://tt7516902mura-maker.github.io/cutn/">
 <meta name="twitter:card" content="summary">
 <link rel="manifest" href="./manifest.json">
-<meta name="theme-color" content="#0F1B14">
+<meta name="theme-color" content="#0A0A0A">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -23,26 +23,26 @@
 <link rel="canonical" href="https://tt7516902mura-maker.github.io/cutn/">
 <style>
   :root{
-    --bg: #0F1B14;
-    --panel: #17251C;
-    --panel-2: #1D2E22;
-    --panel-line: #2C4433;
-    --gold: #E8B923;
-    --gold-dim: #6B5A1F;
+    --bg: #0A0A0A;
+    --panel: #141414;
+    --panel-2: #1C1C1C;
+    --panel-line: #3A3A3A;
+    --gold: #FFFFFF;
+    --gold-dim: #555555;
     --hit: #3DDC84;
     --hit-bg: #163625;
     --strike: #FF5A4E;
     --strike-bg: #3A1E1A;
     --ball: #6FA8F5;
     --foul: #E8C365;
-    --text: #F3F1E7;
-    --muted: #7C9081;
-    --muted-2: #55684F;
+    --text: #FFFFFF;
+    --muted: #999999;
+    --muted-2: #666666;
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color: transparent; touch-action: manipulation;}
   html,body{margin:0;padding:0; touch-action: manipulation;}
   body{
-    background: radial-gradient(ellipse at top, #17281C 0%, var(--bg) 62%);
+    background: radial-gradient(ellipse at top, #1A1A1A 0%, var(--bg) 62%);
     color: var(--text);
     font-family: "Hiragino Sans", "Yu Gothic", "Meiryo", -apple-system, BlinkMacSystemFont, sans-serif;
     min-height: 100vh;
@@ -66,7 +66,7 @@
     width:34px; height:34px; border-radius:9px; font-size:15px; cursor:pointer; flex-shrink:0;
     display:flex; align-items:center; justify-content:center;
   }
-  .gear-btn.active{ color: var(--gold); border-color: var(--gold-dim); background: #241D0D; }
+  .gear-btn.active{ color: var(--gold); border-color: var(--gold-dim); background: var(--panel-2); }
   .header-btns{ display:flex; gap:8px; }
 
   /* Pair tabs */
@@ -80,7 +80,7 @@
     border: 1px solid var(--panel-line); background: var(--panel);
     color: var(--muted); font-size: 12.5px; font-weight: 600; cursor: pointer; white-space: nowrap;
   }
-  .tab.active{ background: var(--gold); color: #1A1400; border-color: var(--gold); }
+  .tab.active{ background: var(--gold); color: var(--bg); border-color: var(--gold); }
   .tab.add{ color: var(--gold); border-style: dashed; background: transparent; }
 
   .empty-note{
@@ -102,7 +102,7 @@
   .add-form button{
     flex:1; border:none; border-radius:8px; padding: 9px 0; font-size:13px; font-weight:700; cursor:pointer;
   }
-  .btn-ok{ background: var(--gold); color:#1A1400; }
+  .btn-ok{ background: var(--gold); color:var(--bg); }
   .btn-cancel{ background: var(--panel-2); color: var(--muted); border:1px solid var(--panel-line) !important; }
 
   /* Settings panel */
@@ -117,17 +117,17 @@
   .stepper{ display:flex; align-items:center; gap:10px; }
   .stepper button{
     width:28px;height:28px;border-radius:8px;border:1px solid var(--panel-line);
-    background:#20301F; color:var(--text); font-size:15px; cursor:pointer;
+    background:#2A2A2A; color:var(--text); font-size:15px; cursor:pointer;
   }
   .stepper .val{ min-width: 24px; text-align:center; font-weight:700; font-size:14px; font-variant-numeric: tabular-nums; }
-  .del-pair{ background:none; border:none; color:#C97B74; font-size:12px; cursor:pointer; text-decoration:underline; padding:0; }
+  .del-pair{ background:none; border:none; color:var(--text); font-size:12px; cursor:pointer; text-decoration:underline; padding:0; font-weight:700; }
   .backup-row{ align-items:center; }
   .backup-btns{ display:flex; gap:8px; }
   .backup-btn{
-    background:#20301F; border:1px solid var(--panel-line); color: var(--text);
+    background:#2A2A2A; border:1px solid var(--panel-line); color: var(--text);
     font-size:12px; font-weight:700; padding: 7px 12px; border-radius:8px; cursor:pointer;
   }
-  .backup-btn.primary{ background: var(--gold); color:#1A1400; border-color: var(--gold); }
+  .backup-btn.primary{ background: var(--gold); color:var(--bg); border-color: var(--gold); }
   .backup-area{ margin-top: 4px; padding-top: 10px; border-top: 1px solid var(--panel-line); }
   .backup-area textarea{
     width:100%; min-height: 90px; background: var(--panel-2); border:1px solid var(--panel-line);
@@ -148,12 +148,13 @@
   .game-num b{ font-size: 20px; margin-right:2px; font-variant-numeric: tabular-nums; }
   .half-badge{
     display:inline-block; margin-left:6px; font-size:11px; font-weight:800; letter-spacing:0.04em;
-    color:#1A1400; background: var(--gold); border-radius:6px; padding:2px 7px; vertical-align:2px;
+    color:var(--bg); background: var(--gold); border-radius:6px; padding:2px 7px; vertical-align:2px;
   }
   .half-badge:empty{ display:none; }
   .roulette-btn{
-    background: var(--gold); color:#1A1400; border:none; border-radius: 10px;
+    background: var(--gold); color:var(--bg); border:none; border-radius: 10px;
     padding: 9px 14px; font-size: 12.5px; font-weight:800; cursor:pointer; letter-spacing:0.02em;
+    display:flex; align-items:center; justify-content:center;
   }
   .roulette-btn:active{ transform: scale(0.96); }
   .roulette-btn:disabled{ opacity: 0.6; }
@@ -163,11 +164,11 @@
     border-radius: 12px; padding: 12px 8px; text-align:center; border: 1px solid var(--panel-line);
     background: var(--panel-2); transition: background .2s, border-color .2s;
   }
-  .role-card.pitcher.set{ background: var(--strike-bg); border-color: #6A362E; }
-  .role-card.batter.set{ background: var(--hit-bg); border-color: #2A5A3D; }
+  .role-card.pitcher.set{ background: var(--panel-2); border-color: var(--text); border-style: dashed; }
+  .role-card.batter.set{ background: var(--panel-2); border-color: var(--text); border-style: solid; }
   .role-tag{ font-size: 10.5px; letter-spacing: 0.14em; font-weight:700; margin-bottom: 6px; }
-  .role-card.pitcher .role-tag{ color: var(--strike); }
-  .role-card.batter .role-tag{ color: var(--hit); }
+  .role-card.pitcher .role-tag{ color: var(--text); }
+  .role-card.batter .role-tag{ color: var(--text); }
   .role-name{ font-size: 16px; font-weight: 800; color: var(--text); min-height: 20px; }
   .role-name.placeholder{ color: var(--muted-2); font-weight: 500; font-size: 13px; }
   .role-name.spinning{ color: var(--muted); }
@@ -183,9 +184,9 @@
   .progress-top .label{ font-size:11.5px; color:var(--muted); letter-spacing:0.06em; }
   .progress-top .count{ font-size: 12.5px; color: var(--gold); font-weight:700; font-variant-numeric: tabular-nums; }
   .lamps{ display:flex; flex-wrap:wrap; gap:5px; }
-  .lamp{ width:15px; height:15px; border-radius:50%; background: #223226; border: 1px solid var(--panel-line); }
-  .lamp.on{ background: var(--gold); box-shadow: 0 0 7px 1px rgba(232,185,35,0.6); border-color: var(--gold); }
-  .lamp.over{ background: var(--strike); box-shadow: 0 0 7px 1px rgba(255,90,78,0.6); border-color: var(--strike); }
+  .lamp{ width:15px; height:15px; border-radius:50%; background: #262626; border: 1px solid var(--panel-line); }
+  .lamp.on{ background: var(--gold); box-shadow: 0 0 7px 1px rgba(255,255,255,0.35); border-color: var(--gold); }
+  .lamp.over{ background: var(--text); box-shadow: 0 0 7px 1px rgba(255,255,255,0.35); border-color: var(--text); }
 
   /* Stats panel (right side only) */
   .stats-card{
@@ -204,11 +205,11 @@
   .mini-stat.ball{ color: var(--ball); }
   .mini-stat.foul{ color: var(--foul); }
   .stat-label{ display:flex; align-items:center; justify-content:center; gap:5px; font-size:12px; color:var(--muted); margin-bottom:6px; }
-  .dot{ width:7px; height:7px; border-radius:50%; }
-  .dot.hit{ background: var(--hit); }
-  .dot.strike{ background: var(--strike); }
-  .dot.ball{ background: var(--ball); }
-  .dot.foul{ background: var(--foul); }
+  .dot{ width:7px; height:7px; box-sizing:border-box; }
+  .dot.hit{ background: var(--hit); border-radius:50%; }
+  .dot.strike{ background: var(--strike); border-radius:1px; }
+  .dot.ball{ background: transparent; border:2px solid var(--ball); border-radius:50%; }
+  .dot.foul{ background: var(--foul); border-radius:1px; transform: rotate(45deg); }
   .stat-row{ display:flex; align-items:center; justify-content:center; gap:8px; }
   .stat-num{ min-width:44px; text-align:center; font-size: 32px; font-weight:800; font-variant-numeric: tabular-nums;
     font-family: 'Arial Black', 'Hiragino Sans', sans-serif; }
@@ -220,16 +221,17 @@
     cursor:pointer; color:#0C1408; display:flex; align-items:center; justify-content:center; user-select:none; flex-shrink:0; }
   .cbtn:active{ transform: scale(0.92); }
   .cbtn:disabled{ opacity: 0.35; cursor: not-allowed; }
-  .cbtn.minus{ background: #2A3B28; color: var(--muted); }
+  .cbtn.minus{ background: #2A2A2A; color: var(--muted); }
   .cbtn.plus.hit{ background: var(--hit); }
   .cbtn.plus.strike{ background: var(--strike); }
   .cbtn.plus.ball{ background: var(--ball); }
   .cbtn.plus.foul{ background: var(--foul); color:#241C05; }
+  body.light-mode .cbtn.minus{ background:#EFEFEF; color: var(--text); border:1px solid #000000; }
 
   /* Action row */
-  .action-btn{ border:none; border-radius: 14px; padding: 14px 10px; font-size: 13.5px; font-weight:700; cursor:pointer; }
-  .btn-reset{ width:100%; background: var(--panel); color: #C97B74; border: 1px solid #4A2A26; }
-  .btn-reset.armed{ background: var(--strike); color: #2A0C09; border-color: var(--strike); }
+  .action-btn{ border:none; border-radius: 14px; padding: 14px 10px; font-size: 13.5px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+  .btn-reset{ width:100%; background: var(--panel); color: var(--text); border: 1px solid var(--panel-line); }
+  .btn-reset.armed{ background: var(--text); color: var(--bg); border-color: var(--text); }
 
   .loading{ text-align:center; color:var(--muted); padding:60px 0; font-size:13px; }
 
@@ -297,11 +299,12 @@
 
   .history-toggle-row{ display:grid; grid-template-columns: 1fr 1fr; gap:8px; }
   .history-toggle-btn{
-    background:#20301F; border:1px solid var(--panel-line); color: var(--text);
+    background:#2A2A2A; border:1px solid var(--panel-line); color: var(--text);
     font-size:12.5px; font-weight:700; padding: 9px 8px; border-radius:9px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
   }
-  .history-toggle-btn.active{ background: var(--gold); color:#1A1400; border-color: var(--gold); }
-  body.light-mode .history-toggle-btn{ background:#E7E2D0; }
+  .history-toggle-btn.active{ background: var(--gold); color:var(--bg); border-color: var(--gold); }
+  body.light-mode .history-toggle-btn{ background:#EFEFEF; }
 
   .history-list{ margin-top: 10px; max-height: 240px; overflow-y:auto; }
   .history-row{
@@ -322,7 +325,7 @@
 
   .celebrate-toast{
     position: fixed; top: 18px; left: 50%; transform: translateX(-50%) translateY(-30px);
-    background: var(--gold); color:#1A1400; font-weight:800; font-size:14px;
+    background: var(--gold); color:var(--bg); font-weight:800; font-size:14px;
     padding: 12px 22px; border-radius: 999px; box-shadow: 0 8px 24px rgba(0,0,0,0.35);
     opacity: 0; pointer-events:none; transition: opacity .25s, transform .25s; z-index: 999;
     white-space: nowrap;
@@ -331,29 +334,29 @@
 
   /* Light mode */
   body.light-mode{
-    --bg: #F3F1E7;
+    --bg: #FFFFFF;
     --panel: #FFFFFF;
-    --panel-2: #F3F1E7;
-    --panel-line: #DDD8C8;
-    --gold: #B8860B;
-    --gold-dim: #E0CE9E;
+    --panel-2: #F2F2F2;
+    --panel-line: #000000;
+    --gold: #000000;
+    --gold-dim: #B0B0B0;
     --hit: #1E9E52;
     --hit-bg: #DDF3E4;
     --strike: #E0453A;
     --strike-bg: #FBE1DE;
     --ball: #2E6FD9;
     --foul: #B8860B;
-    --text: #23301F;
-    --muted: #6E7A66;
-    --muted-2: #99A38F;
+    --text: #000000;
+    --muted: #555555;
+    --muted-2: #888888;
   }
-  body.light-mode{ background: radial-gradient(ellipse at top, #FBFAF3 0%, #F3F1E7 62%); }
-  body.light-mode .role-card.pitcher.set{ background: var(--strike-bg); }
-  body.light-mode .role-card.batter.set{ background: var(--hit-bg); }
-  body.light-mode .lamp.on{ box-shadow: 0 0 6px 1px rgba(184,134,11,0.5); }
-  body.light-mode .cbtn.minus{ background: #E7E2D0; color: var(--muted); }
-  body.light-mode .stepper button{ background:#E7E2D0; color: var(--text); }
-  body.light-mode .backup-btn{ background:#E7E2D0; color: var(--text); }
+  body.light-mode{ background: #FFFFFF; }
+  body.light-mode .role-card.pitcher.set{ background: var(--panel-2); border-color:#000000; }
+  body.light-mode .role-card.batter.set{ background: var(--panel-2); border-color:#000000; }
+  body.light-mode .lamp.on{ box-shadow: none; }
+  body.light-mode .cbtn.minus{ background: #EFEFEF; color: var(--text); border:1px solid #000000; }
+  body.light-mode .stepper button{ background:#EFEFEF; color: var(--text); border:1px solid #000000; }
+  body.light-mode .backup-btn{ background:#EFEFEF; color: var(--text); border:1px solid #000000; }
 
   .theme-btn{
     background:var(--panel); border:1px solid var(--panel-line); color: var(--muted);
@@ -865,8 +868,7 @@
     const n = gameNums.length;
     const groupW = (w - padL - padR) / n;
     const barW = Math.max(4, Math.min(16, groupW / 2 - 3));
-    const colorA = cssVar('--gold');
-    const colorB = cssVar('--ball');
+    const strokeColor = cssVar('--hit');
     const colorLine = cssVar('--panel-line');
     const colorMuted = cssVar('--muted');
 
@@ -878,8 +880,9 @@
       const hB = (dataB[i] / maxVal) * barH;
       const yA = h - padB - hA;
       const yB = h - padB - hB;
-      bars += '<rect x="' + xBase + '" y="' + yA + '" width="' + barW + '" height="' + hA + '" rx="2" fill="' + colorA + '"/>';
-      bars += '<rect x="' + (xBase + barW + 3) + '" y="' + yB + '" width="' + barW + '" height="' + hB + '" rx="2" fill="' + colorB + '"/>';
+      // player A: solid fill / player B: outline only, so both stay readable in pure black & white
+      bars += '<rect x="' + xBase + '" y="' + yA + '" width="' + barW + '" height="' + hA + '" rx="2" fill="' + strokeColor + '"/>';
+      bars += '<rect x="' + (xBase + barW + 3) + '" y="' + yB + '" width="' + barW + '" height="' + hB + '" rx="2" fill="none" stroke="' + strokeColor + '" stroke-width="1.5"/>';
       bars += '<text x="' + (xBase + barW + 1.5) + '" y="' + (h - padB + 13) + '" font-size="9" fill="' + colorMuted + '" text-anchor="middle">' + g + '</text>';
     });
 
@@ -890,8 +893,8 @@
 
     els.historyGraph.innerHTML = svg
       + '<div class="chart-legend">'
-      +   '<span><i style="background:' + colorA + '"></i>' + escapeHtml(pair.name1) + '（ヒット数）</span>'
-      +   '<span><i style="background:' + colorB + '"></i>' + escapeHtml(pair.name2) + '（ヒット数）</span>'
+      +   '<span><i style="background:' + strokeColor + '"></i>' + escapeHtml(pair.name1) + '（ヒット数）</span>'
+      +   '<span><i style="background:none;border:1.5px solid ' + strokeColor + '"></i>' + escapeHtml(pair.name2) + '（ヒット数）</span>'
       + '</div>';
   }
 
