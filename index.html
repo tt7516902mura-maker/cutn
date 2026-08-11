@@ -64,6 +64,7 @@
   .gear-btn{
     background:var(--panel); border:1px solid var(--panel-line); color: var(--muted);
     width:34px; height:34px; border-radius:9px; font-size:15px; cursor:pointer; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
   }
   .gear-btn.active{ color: var(--gold); border-color: var(--gold-dim); background: #241D0D; }
   .header-btns{ display:flex; gap:8px; }
@@ -281,8 +282,9 @@
   }
   .icon-moon{
     width:14px; height:14px; border-radius:50%; background:currentColor;
-    -webkit-mask: radial-gradient(circle 7px at 65% 35%, transparent 99%, black 100%);
-    mask: radial-gradient(circle 7px at 65% 35%, transparent 99%, black 100%);
+    -webkit-mask: radial-gradient(circle 6.5px at 62% 38%, transparent 99%, black 100%);
+    mask: radial-gradient(circle 6.5px at 62% 38%, transparent 99%, black 100%);
+    transform: translate(1.5px, -1.5px);
   }
 
   .icon-triangle{
@@ -356,6 +358,7 @@
   .theme-btn{
     background:var(--panel); border:1px solid var(--panel-line); color: var(--muted);
     width:34px; height:34px; border-radius:9px; font-size:15px; cursor:pointer; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
   }
 </style>
 </head>
